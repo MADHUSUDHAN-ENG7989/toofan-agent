@@ -41,10 +41,15 @@
                         <input type="password" id="apiKey" placeholder="Leave empty to use shared key (may have queue)">
                     </div>
 
-                    <button type="submit" id="startBtn" class="primary-btn">
-                        <span class="btn-text">Start Automation</span>
-                        <div class="spinner hidden"></div>
-                    </button>
+                    <div style="display: flex; gap: 10px;">
+                        <button type="submit" id="startBtn" class="primary-btn" style="flex: 1;">
+                            <span class="btn-text">Start Automation</span>
+                            <div class="spinner hidden"></div>
+                        </button>
+                        <button type="button" id="stopBtn" class="primary-btn" style="flex: 1; background: #ef4444; display: none;">
+                            <span class="btn-text">Stop Agent</span>
+                        </button>
+                    </div>
                 </form>
             </section>
 

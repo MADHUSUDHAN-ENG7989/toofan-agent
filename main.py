@@ -30,23 +30,52 @@ async def run_automation_process(websocket: WebSocket, username, password, api_k
         stderr=asyncio.subprocess.STDOUT
     )
     
-    # Stream logs line by line
-    while True:
-        line = await process.stdout.readline()
-        if not line:
-            break
-        # Send the line to the frontend
+    async def read_stdout():
+        while True:
+            line = await process.stdout.readline()
+            if not line:
+                break
+            try:
+                await websocket.send_text(line.decode().rstrip())
+            except WebSocketDisconnect:
+                try:
+                    process.terminate()
+                except ProcessLookupError:
+                    pass
+                break
+
+    async def listen_for_stop():
         try:
-            await websocket.send_text(line.decode().rstrip())
+            while True:
+                data = await websocket.receive_json()
+                if data.get("action") == "stop":
+                    try:
+                        process.terminate()
+                    except ProcessLookupError:
+                        pass
+                    break
         except WebSocketDisconnect:
-            process.terminate()
-            raise
+            try:
+                process.terminate()
+            except ProcessLookupError:
+                pass
+
+    stdout_task = asyncio.create_task(read_stdout())
+    stop_task = asyncio.create_task(listen_for_stop())
+    
+    done, pending = await asyncio.wait(
+        [stdout_task, stop_task],
+        return_when=asyncio.FIRST_COMPLETED
+    )
+    
+    for task in pending:
+        task.cancel()
         
     await process.wait()
     try:
         await websocket.send_text(f"\n[✓] Automation complete! (Process exited with code {process.returncode})")
         await websocket.close()
-    except WebSocketDisconnect:
+    except Exception:
         pass
 
 @app.websocket("/ws/logs")

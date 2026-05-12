@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnText = startBtn.querySelector('.btn-text');
     const spinner = startBtn.querySelector('.spinner');
     const consoleOutput = document.getElementById('consoleOutput');
+    const stopBtn = document.getElementById('stopBtn');
     
     let ws = null;
 
@@ -33,6 +34,13 @@ document.addEventListener('DOMContentLoaded', () => {
         consoleOutput.scrollTop = consoleOutput.scrollHeight;
     }
 
+    stopBtn.addEventListener('click', () => {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+            appendLog('Stopping agent manually...', true);
+            ws.send(JSON.stringify({ action: 'stop' }));
+        }
+    });
+
     form.addEventListener('submit', (e) => {
         e.preventDefault();
         
@@ -41,7 +49,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const apiKey = document.getElementById('apiKey').value;
 
         // UI State update
-        startBtn.disabled = true;
+        startBtn.style.display = 'none';
+        stopBtn.style.display = 'block';
         btnText.textContent = 'Connecting...';
         spinner.classList.remove('hidden');
         
@@ -68,6 +77,8 @@ document.addEventListener('DOMContentLoaded', () => {
             appendLog('Connection closed. Automation ended or disconnected.', true);
             // Reset UI
             startBtn.disabled = false;
+            startBtn.style.display = 'block';
+            stopBtn.style.display = 'none';
             btnText.textContent = 'Start Automation';
             spinner.classList.add('hidden');
         };
