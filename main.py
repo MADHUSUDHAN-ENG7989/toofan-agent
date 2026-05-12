@@ -22,7 +22,7 @@ async def run_automation_process(websocket: WebSocket, username, password, api_k
     
     # Start subprocess for the automation script
     process = await asyncio.create_subprocess_exec(
-        "python", "solve_programs.py",
+        "python", "-u", "solve_programs.py",
         "--username", username,
         "--password", password,
         "--api-key", api_key,
