@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VPL Auto Solver - AI Agent</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="background-mesh"></div>
+    
+    <div class="container">
+        <header>
+            <div class="logo-wrapper">
+                <div class="logo-icon">✨</div>
+                <h1>VPL Auto <span>Solver</span></h1>
+            </div>
+            <p class="subtitle">Autonomous AI Agent for Virtual Programming Lab</p>
+        </header>
+
+        <main class="dashboard">
+            <!-- Configuration Panel -->
+            <section class="glass-panel config-panel">
+                <h2>Configuration</h2>
+                <form id="configForm">
+                    <div class="input-group">
+                        <label for="username">Portal Username</label>
+                        <input type="text" id="username" placeholder="e.g. 24BD1A058H" required>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="password">Portal Password</label>
+                        <input type="password" id="password" placeholder="••••••••" required>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="apiKey">Gemini API Key (Optional)</label>
+                        <input type="password" id="apiKey" placeholder="Leave empty to use shared key (may have queue)">
+                    </div>
+
+                    <button type="submit" id="startBtn" class="primary-btn">
+                        <span class="btn-text">Start Automation</span>
+                        <div class="spinner hidden"></div>
+                    </button>
+                </form>
+            </section>
+
+            <!-- Live Terminal Panel -->
+            <section class="glass-panel terminal-panel">
+                <div class="terminal-header">
+                    <div class="mac-buttons">
+                        <span class="close"></span>
+                        <span class="minimize"></span>
+                        <span class="maximize"></span>
+                    </div>
+                    <span class="terminal-title">agent-output ~ zsh</span>
+                </div>
+                <div class="terminal-body" id="consoleOutput">
+                    <div class="log-line system-msg">Ready. Enter credentials and start the agent...</div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
