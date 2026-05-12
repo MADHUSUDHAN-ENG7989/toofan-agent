@@ -47,6 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const username = document.getElementById('username').value;
         const password = document.getElementById('password').value;
         const apiKey = document.getElementById('apiKey').value;
+        const targetAssignment = document.getElementById('targetAssignment').value;
 
         // UI State update
         startBtn.style.display = 'none';
@@ -65,7 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ws.onopen = () => {
             appendLog('Connection established. Sending secure configuration...', true);
             // Send config
-            ws.send(JSON.stringify({ username, password, apiKey }));
+            ws.send(JSON.stringify({ username, password, apiKey, targetAssignment }));
             btnText.textContent = 'Agent Running';
         };
 

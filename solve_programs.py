@@ -54,7 +54,7 @@ def ask_gemini_to_solve(client, problem_desc, initial_code, previous_code=None, 
         print(f"[Error] Gemini API error: {e}")
         return None
 
-def run_automation(username, password, api_key):
+def run_automation(username, password, api_key, target_assignment=None):
     client = genai.Client(api_key=api_key)
     
     with sync_playwright() as p:
@@ -87,10 +87,36 @@ def run_automation(username, password, api_key):
             attempts = page.locator("a:has-text('ATTEMPT')").all()
 
         links = []
-        for link in attempts:
+        assignment_info = []
+        for i, link in enumerate(attempts):
             href = link.get_attribute("href")
             if href:
+                # Try to get surrounding text to identify the assignment
+                text_context = link.evaluate("el => { let p = el.parentElement; while(p && p.innerText.length < 20 && p.tagName !== 'BODY') p = p.parentElement; return p ? p.innerText.trim().replace(/\\n/g, ' ').substring(0, 150) : ''; }")
                 links.append(href)
+                assignment_info.append(f"{i+1}. Context: {text_context}")
+
+        if target_assignment and target_assignment.strip() and assignment_info:
+            print(f"[*] Asking AI to find assignment matching: '{target_assignment}'...")
+            prompt = f"Here is a list of assignments found:\n" + "\n".join(assignment_info) + f"\n\nThe user wants to solve: '{target_assignment}'.\nWhich assignment index(es) should we solve? Reply with a comma-separated list of numbers only (e.g. 1, 3). If all should be solved, reply ALL. If none, reply NONE. Do not include any explanations."
+            try:
+                response = client.models.generate_content(
+                    model='gemini-2.5-flash',
+                    contents=prompt
+                )
+                answer = response.text.strip().upper()
+                print(f"[AI Filter Decision]: {answer}")
+                if answer == "ALL":
+                    pass
+                elif answer == "NONE" or answer == "":
+                    links = []
+                    print("[-] No matching assignments found based on target.")
+                else:
+                    import re
+                    indices = [int(x)-1 for x in re.findall(r'\d+', answer)]
+                    links = [links[idx] for idx in indices if 0 <= idx < len(links)]
+            except Exception as e:
+                print(f"[Error] Failed to filter with Gemini: {e}")
 
         print(f"[+] Found {len(links)} assignments to process.")
         
@@ -213,6 +239,7 @@ if __name__ == "__main__":
     parser.add_argument("--username", required=True, help="Portal Username")
     parser.add_argument("--password", required=True, help="Portal Password")
     parser.add_argument("--api-key", required=True, help="Gemini API Key")
+    parser.add_argument("--target", required=False, default=None, help="Specific assignment to solve")
     args = parser.parse_args()
     
-    run_automation(args.username, args.password, args.api_key)
+    run_automation(args.username, args.password, args.api_key, args.target)

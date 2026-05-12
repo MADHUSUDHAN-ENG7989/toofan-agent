@@ -17,15 +17,20 @@ default_key_lock = asyncio.Lock()
 async def read_index():
     return FileResponse("static/index.html")
 
-async def run_automation_process(websocket: WebSocket, username, password, api_key):
+async def run_automation_process(websocket: WebSocket, username, password, api_key, target_assignment):
     await websocket.send_text("[+] Configuration received. Initializing Playwright Headless Browser...")
     
     # Start subprocess for the automation script
+    cmd = ["python", "-u", "solve_programs.py",
+           "--username", username,
+           "--password", password,
+           "--api-key", api_key]
+           
+    if target_assignment and target_assignment.strip():
+        cmd.extend(["--target", target_assignment.strip()])
+        
     process = await asyncio.create_subprocess_exec(
-        "python", "-u", "solve_programs.py",
-        "--username", username,
-        "--password", password,
-        "--api-key", api_key,
+        *cmd,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.STDOUT
     )
@@ -87,6 +92,7 @@ async def websocket_endpoint(websocket: WebSocket):
         username = data.get("username")
         password = data.get("password")
         api_key = data.get("apiKey")
+        target_assignment = data.get("targetAssignment")
         
         if not username or not password:
             await websocket.send_text("[-] Missing credentials. Cannot start.")
@@ -100,10 +106,10 @@ async def websocket_endpoint(websocket: WebSocket):
             
             async with default_key_lock:
                 await websocket.send_text("[+] Ready to use the shared API key.")
-                await run_automation_process(websocket, username, password, DEFAULT_API_KEY)
+                await run_automation_process(websocket, username, password, DEFAULT_API_KEY, target_assignment)
         else:
             # User provided their own key, run immediately
-            await run_automation_process(websocket, username, password, api_key)
+            await run_automation_process(websocket, username, password, api_key, target_assignment)
             
     except WebSocketDisconnect:
         print("Client disconnected. You may need to manually terminate the process if it's still running.")
